@@ -1,0 +1,1210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Family Hub">
+<title>Family Hub</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: #f4f1ec; color: #1f2430; font-size: 2.3vmin;
+    font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+    overflow: hidden; -webkit-user-select: none; user-select: none;
+  }
+  input, select, textarea, button { font-family: inherit; font-size: inherit; color: inherit; }
+  .row { display: -webkit-flex; display: flex; }
+  .col { display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; }
+  .grow { -webkit-flex: 1; flex: 1; min-width: 0; min-height: 0; }
+  .center { -webkit-align-items: center; align-items: center; }
+  .between { -webkit-justify-content: space-between; justify-content: space-between; }
+  .wrap { -webkit-flex-wrap: wrap; flex-wrap: wrap; }
+  .scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .muted { color: #8a8f9c; }
+
+  #app { display: -webkit-flex; display: flex; width: 100%; height: 100%; }
+
+  /* ---------- nav ---------- */
+  .nav { width: 13vmin; background: #fff; border-right: 1px solid #e4dfd6; padding: 1.2vmin 0;
+         display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; }
+  .navb { margin: .5vmin 1.2vmin; padding: 1.4vmin 0; border-radius: 2vmin; text-align: center; cursor: pointer; color: #6b7080; }
+  .navb .ico { font-size: 4.4vmin; line-height: 1.1; }
+  .navb .lbl { font-size: 1.7vmin; margin-top: .3vmin; font-weight: 600; }
+  .navb.on { background: #1f2430; color: #fff; }
+
+  /* ---------- main + header ---------- */
+  .main { -webkit-flex: 1; flex: 1; min-width: 0; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; }
+  .head { padding: 1.6vmin 2.4vmin; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: space-between; justify-content: space-between; }
+  .title { font-size: 3.8vmin; font-weight: 800; letter-spacing: -.5px; }
+  .clock { text-align: right; }
+  .clock .t { font-size: 4.6vmin; font-weight: 800; line-height: 1; }
+  .clock .w { font-size: 2.1vmin; color: #6b7080; margin-top: .4vmin; }
+  .ctrl { display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; margin-top: 1vmin; -webkit-flex-wrap: wrap; flex-wrap: wrap; }
+  .btn { display: inline-block; border: 0; background: #fff; border-radius: 99px; padding: 1.1vmin 2.2vmin; margin: .4vmin .6vmin .4vmin 0;
+         font-weight: 700; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+  .btn.dark { background: #1f2430; color: #fff; }
+  .btn.red { background: #e5484d; color: #fff; }
+  .btn.on { background: #1f2430; color: #fff; }
+  .btn.sm { padding: .7vmin 1.5vmin; font-size: 1.9vmin; }
+  .seg { display: -webkit-flex; display: flex; background: #e6e1d8; border-radius: 99px; padding: .4vmin; margin-right: 1.2vmin; }
+  .seg .btn { margin: 0; box-shadow: none; background: transparent; color: #6b7080; }
+  .seg .btn.on { background: #fff; color: #1f2430; box-shadow: 0 1px 2px rgba(0,0,0,.15); }
+  .chip { display: inline-block; padding: .8vmin 1.6vmin; border-radius: 99px; margin: .3vmin .6vmin .3vmin 0; font-weight: 700; cursor: pointer; border: .3vmin solid transparent; color: #fff; }
+  .chip.off { background: #fff !important; color: #6b7080; border-color: #e4dfd6; }
+  .body { -webkit-flex: 1; flex: 1; min-height: 0; padding: 0 2.4vmin 2.4vmin; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; }
+
+  /* ---------- calendar ---------- */
+  .wk { -webkit-flex: 1; flex: 1; display: -webkit-flex; display: flex; min-height: 0; }
+  .wcol { -webkit-flex: 1; flex: 1; min-width: 0; background: #fff; border-radius: 2vmin; margin-right: .9vmin; padding: 1.2vmin; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; }
+  .wcol:last-child { margin-right: 0; }
+  .wcol.today { box-shadow: 0 0 0 .4vmin #1f2430 inset; }
+  .dh { display: -webkit-flex; display: flex; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; align-items: center; cursor: pointer; }
+  .dow { font-size: 1.9vmin; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: #8a8f9c; }
+  .today .dow { color: #1f2430; }
+  .dn { font-size: 3.6vmin; font-weight: 800; }
+  .dwx { font-size: 1.8vmin; color: #8a8f9c; margin: .3vmin 0 .8vmin; min-height: 2.4vmin; }
+  .ev { border-left: .8vmin solid #888; border-radius: 1.2vmin; padding: .8vmin 1.1vmin; margin-bottom: .8vmin; cursor: pointer; }
+  .ev .et { font-size: 1.8vmin; color: #5b6070; font-weight: 600; }
+  .ev .en { font-size: 2.3vmin; font-weight: 700; line-height: 1.15; }
+  .none { color: #b3b7c1; font-size: 2vmin; padding: .6vmin 0; }
+  .plus { width: 4.6vmin; height: 4.6vmin; border-radius: 50%; background: #efebe3; text-align: center; line-height: 4.4vmin; font-size: 3.2vmin; font-weight: 700; cursor: pointer; color: #6b7080; }
+
+  .dayview { -webkit-flex: 1; flex: 1; background: #fff; border-radius: 2vmin; padding: 2vmin; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .dayview .ev { padding: 1.4vmin 1.8vmin; }
+  .dayview .ev .en { font-size: 3vmin; }
+  .dayview .ev .et { font-size: 2.2vmin; }
+
+  .mo { -webkit-flex: 1; flex: 1; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; min-height: 0; }
+  .mo .mh { display: -webkit-flex; display: flex; }
+  .mo .mh div { -webkit-flex: 1; flex: 1; text-align: center; font-weight: 800; color: #8a8f9c; font-size: 1.8vmin; padding: .6vmin 0; text-transform: uppercase; }
+  .mo .mw { -webkit-flex: 1; flex: 1; display: -webkit-flex; display: flex; min-height: 0; }
+  .mc { -webkit-flex: 1; flex: 1; min-width: 0; background: #fff; border-radius: 1.2vmin; margin: .3vmin; padding: .8vmin; overflow: hidden; cursor: pointer; }
+  .mc.other { background: #ece8e0; }
+  .mc.today { box-shadow: 0 0 0 .35vmin #1f2430 inset; }
+  .mc .md { font-weight: 800; font-size: 2vmin; margin-bottom: .3vmin; }
+  .mc .me { font-size: 1.6vmin; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-radius: .6vmin; padding: .2vmin .6vmin; margin-bottom: .3vmin; }
+  .mc .mm { font-size: 1.5vmin; color: #8a8f9c; font-weight: 700; }
+
+  .sc { -webkit-flex: 1; flex: 1; display: -webkit-flex; display: flex; min-height: 0; }
+  .sc .wcol .ph { display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; margin-bottom: 1vmin; font-weight: 800; font-size: 2.4vmin; }
+
+  .av { width: 5.4vmin; height: 5.4vmin; border-radius: 50%; color: #fff; font-weight: 800; text-align: center; line-height: 5.4vmin; font-size: 2.6vmin; margin-right: 1vmin; -webkit-flex-shrink: 0; flex-shrink: 0; }
+
+  /* ---------- chores ---------- */
+  .pc { -webkit-flex: 1; flex: 1; min-width: 0; background: #fff; border-radius: 2vmin; margin-right: .9vmin; padding: 1.6vmin; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; }
+  .pc:last-child { margin-right: 0; }
+  .bar { height: 1.6vmin; background: #ece8e0; border-radius: 99px; overflow: hidden; margin: .8vmin 0 1.2vmin; }
+  .bar div { height: 100%; border-radius: 99px; }
+  .ch { display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; padding: 1.3vmin 1.4vmin; border-radius: 1.4vmin; background: #f6f3ee; margin-bottom: .9vmin; cursor: pointer; }
+  .ch.done { background: #e3f4ea; color: #5f8a70; }
+  .ch.done .cn { text-decoration: line-through; }
+  .ck { width: 4vmin; height: 4vmin; border-radius: 50%; border: .4vmin solid #c9c4ba; margin-right: 1.2vmin; text-align: center; line-height: 3.2vmin; font-weight: 800; color: #fff; -webkit-flex-shrink: 0; flex-shrink: 0; }
+  .done .ck { background: #3fbf8f; border-color: #3fbf8f; }
+  .cn { -webkit-flex: 1; flex: 1; font-weight: 700; font-size: 2.4vmin; }
+  .cs { font-weight: 800; color: #d99a00; margin-left: 1vmin; }
+  .ed { margin-left: 1vmin; color: #a2a7b3; font-size: 2.6vmin; padding: 0 .8vmin; }
+
+  /* ---------- lists ---------- */
+  .lt { width: 24vmin; margin-right: 1.4vmin; -webkit-flex-shrink: 0; flex-shrink: 0; }
+  .lt .btn { display: block; width: 100%; text-align: left; margin: 0 0 .8vmin; }
+  .lbox { -webkit-flex: 1; flex: 1; min-width: 0; background: #fff; border-radius: 2vmin; padding: 2vmin; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; min-height: 0; }
+  .li { display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; padding: 1.4vmin 1vmin; border-bottom: 1px solid #f0ece5; cursor: pointer; font-size: 2.8vmin; font-weight: 600; }
+  .li.done { color: #b3b7c1; text-decoration: line-through; }
+  .li .x { margin-left: auto; color: #c05; padding: 0 1.2vmin; font-size: 3vmin; }
+  .li .ck { width: 3.6vmin; height: 3.6vmin; line-height: 2.8vmin; }
+  .li.done .ck { background: #3fbf8f; border-color: #3fbf8f; }
+  .addrow { display: -webkit-flex; display: flex; margin-bottom: 1vmin; }
+  .inp { border: .3vmin solid #e4dfd6; border-radius: 1.4vmin; padding: 1.3vmin 1.6vmin; background: #fff; width: 100%; -webkit-user-select: text; user-select: text; }
+  .addrow .inp { margin-right: 1vmin; font-size: 2.8vmin; }
+
+  /* ---------- meals ---------- */
+  .ml { -webkit-flex: 1; flex: 1; background: #fff; border-radius: 2vmin; padding: 1.6vmin; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; min-height: 0; }
+  .mr { -webkit-flex: 1; flex: 1; display: -webkit-flex; display: flex; min-height: 0; }
+  .mr > div { -webkit-flex: 1; flex: 1; min-width: 0; margin: .3vmin; border-radius: 1.2vmin; padding: .8vmin 1vmin; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; -webkit-justify-content: center; justify-content: center; }
+  .mr .hd { -webkit-flex: 0 0 14vmin; flex: 0 0 14vmin; font-weight: 800; color: #8a8f9c; font-size: 1.9vmin; text-transform: uppercase; background: transparent; }
+  .mr .meal { overflow-wrap: break-word; word-wrap: break-word; background: #f6f3ee; cursor: pointer; font-weight: 700; font-size: 2.1vmin; line-height: 1.15; text-align: center; }
+  .mr .meal.empty { color: #c3c7d0; font-weight: 600; }
+  .mr .meal.today { background: #fdf0c9; }
+  .mr.hdr { -webkit-flex: 0 0 7vmin; flex: 0 0 7vmin; }
+  .mr.hdr .d { text-align: center; font-weight: 800; font-size: 2vmin; background: transparent; }
+  .mr.hdr .d.today { color: #d99a00; }
+
+  /* ---------- photos / settings ---------- */
+  .pg { display: -webkit-flex; display: flex; -webkit-flex-wrap: wrap; flex-wrap: wrap; }
+  .ph1 { width: 22vmin; height: 22vmin; margin: 0 1.2vmin 1.2vmin 0; border-radius: 1.6vmin; background-size: cover; background-position: center; position: relative; }
+  .ph1 .rm { position: absolute; top: .6vmin; right: .6vmin; width: 4.4vmin; height: 4.4vmin; border-radius: 50%; background: rgba(0,0,0,.65); color: #fff; text-align: center; line-height: 4.2vmin; font-size: 3vmin; cursor: pointer; }
+  .card { background: #fff; border-radius: 2vmin; padding: 2vmin; margin-bottom: 1.4vmin; }
+  .card h3 { margin: 0 0 1vmin; font-size: 2.6vmin; }
+  .card .lab { font-weight: 700; color: #6b7080; margin: 1.2vmin 0 .5vmin; font-size: 1.9vmin; }
+  .sw { display: inline-block; width: 4.4vmin; height: 4.4vmin; border-radius: 50%; margin: .3vmin .5vmin .3vmin 0; cursor: pointer; border: .5vmin solid transparent; }
+  .sw.on { border-color: #1f2430; }
+  .prow { display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; margin-bottom: 1vmin; -webkit-flex-wrap: wrap; flex-wrap: wrap; }
+  .prow .inp { width: 24vmin; margin-right: 1.2vmin; }
+
+  /* ---------- modal ---------- */
+  .mbg { position: fixed; left: 0; top: 0; right: 0; bottom: 0; background: rgba(20,22,30,.55); z-index: 50; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center; }
+  .modal { background: #fff; border-radius: 2.6vmin; padding: 2.6vmin; width: 92%; max-width: 78vmin; max-height: 92%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .modal h2 { margin: 0 0 1.4vmin; font-size: 3.4vmin; }
+  .modal .lab { font-weight: 700; color: #6b7080; margin: 1.4vmin 0 .6vmin; font-size: 1.9vmin; }
+  .mbtns { margin-top: 2vmin; display: -webkit-flex; display: flex; -webkit-flex-wrap: wrap; flex-wrap: wrap; }
+  .mbtns .btn { box-shadow: none; background: #efebe3; }
+  .mbtns .btn.dark { background: #1f2430; }
+  .mbtns .btn.red { background: #e5484d; }
+  .dchip { display: inline-block; width: 7vmin; height: 7vmin; line-height: 7vmin; border-radius: 50%; text-align: center; font-weight: 800; background: #efebe3; margin-right: .8vmin; cursor: pointer; }
+  .dchip.on { background: #1f2430; color: #fff; }
+
+  /* ---------- screensaver / night ---------- */
+  #saver { position: fixed; left: 0; top: 0; right: 0; bottom: 0; background: #000; z-index: 80; display: none; }
+  #saver .pic { position: absolute; left: 0; top: 0; right: 0; bottom: 0; background-size: cover; background-position: center; opacity: 0; -webkit-transition: opacity .8s; transition: opacity .8s; }
+  #saver .sclock { position: absolute; left: 4vmin; bottom: 4vmin; color: #fff; text-shadow: 0 1px 8px rgba(0,0,0,.7); }
+  #saver .sclock .t { font-size: 14vmin; font-weight: 800; line-height: 1; }
+  #saver .sclock .d { font-size: 3.6vmin; margin-top: 1vmin; }
+  #dim { position: fixed; left: 0; top: 0; right: 0; bottom: 0; background: #000; opacity: 0; pointer-events: none; z-index: 70; -webkit-transition: opacity 1s; transition: opacity 1s; }
+  #dim.on { opacity: .62; }
+
+  /* ---------- recipes / meal planning ---------- */
+  .rg { display: -webkit-flex; display: flex; -webkit-flex-wrap: wrap; flex-wrap: wrap; }
+  .rc { width: 31%; margin: 0 2% 1.6vmin 0; background: #fff; border-radius: 2vmin; padding: 1.8vmin; cursor: pointer; }
+  .rc .rt { font-weight: 800; font-size: 2.7vmin; line-height: 1.15; margin-bottom: .8vmin; }
+  .rc .rn { color: #8a8f9c; font-size: 2vmin; margin-top: .6vmin; }
+  .tag { display: inline-block; background: #efebe3; color: #5b6070; border-radius: 99px; padding: .3vmin 1.1vmin; font-size: 1.7vmin; font-weight: 700; margin: .3vmin .5vmin .3vmin 0; }
+  .banner { display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: space-between; justify-content: space-between; background: #fdf0c9; border-radius: 1.6vmin; padding: 1.2vmin 2vmin; margin-bottom: 1.2vmin; font-weight: 700; }
+  .banner.ok { background: #e3f4ea; color: #2f7a57; }
+  .banner .btn { margin: 0 0 0 1vmin; }
+  .aisle { font-weight: 800; text-transform: uppercase; letter-spacing: .08em; font-size: 1.9vmin; color: #8a8f9c; padding: 1.6vmin 1vmin .4vmin; }
+  textarea.inp { resize: none; }
+
+  /* ---------- portrait ---------- */
+  @media (orientation: portrait) {
+    #app { -webkit-flex-direction: column-reverse; flex-direction: column-reverse; }
+    .nav { width: 100%; -webkit-flex-direction: row; flex-direction: row; border-right: 0; border-top: 1px solid #e4dfd6; padding: .6vmin 1vmin; }
+    .navb { -webkit-flex: 1; flex: 1; margin: .3vmin; padding: 1vmin 0; }
+    .navb .ico { font-size: 4.6vmin; }
+    .wk { -webkit-flex-direction: column; flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .wcol { margin: 0 0 .9vmin; -webkit-flex: none; flex: none; }
+    .wcol .evs { display: -webkit-flex; display: flex; -webkit-flex-wrap: wrap; flex-wrap: wrap; }
+    .wcol .evs .ev { margin-right: .8vmin; }
+    .sc, .pc-wrap { -webkit-flex-direction: column; flex-direction: column; overflow-y: auto; }
+    .pc-wrap { display: -webkit-flex; display: flex; -webkit-flex: 1; flex: 1; min-height: 0; }
+    .pc { margin: 0 0 .9vmin; -webkit-flex: none; flex: none; }
+    .lt { width: 100%; margin: 0 0 1vmin; display: -webkit-flex; display: flex; -webkit-flex-wrap: wrap; flex-wrap: wrap; }
+    .lt .btn { display: inline-block; width: auto; margin-right: .6vmin; }
+    .lwrap { -webkit-flex-direction: column; flex-direction: column; }
+    .ph1 { width: 28vmin; height: 28vmin; }
+    .rc { width: 48%; }
+    .mr .meal { font-size: 1.55vmin; padding: .6vmin .4vmin; }
+    .mr .hd { -webkit-flex: 0 0 12vmin; flex: 0 0 12vmin; font-size: 1.6vmin; }
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="saver"><div class="pic" id="pic"></div><div class="sclock"><div class="t" id="st"></div><div class="d" id="sd"></div></div></div>
+<div id="dim"></div>
+
+<script>
+(function () {
+"use strict";
+
+/* ============================ helpers ============================ */
+var DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+var DOW1 = ["S","M","T","W","T","F","S"];
+var MONN = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+var COLORS = ["#ef6f8b","#4b8df8","#f2b134","#3fbf8f","#9b6cf0","#ff8a4c","#2cb5c4","#7a8394"];
+var EVERYONE = "#8a7fb8";
+var KEY = "familyhub.v1";
+
+function $(id) { return document.getElementById(id); }
+function pad(n) { return n < 10 ? "0" + n : "" + n; }
+function ymd(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+function parse(s) { var p = s.split("-"); return new Date(+p[0], +p[1] - 1, +p[2]); }
+function addDays(d, n) { return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); }
+function startOfWeek(d) { return addDays(d, -d.getDay()); }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+function fmtTime(t) {
+  var p = t.split(":"), h = parseInt(p[0], 10), ap = h >= 12 ? "pm" : "am";
+  h = h % 12; if (h === 0) h = 12;
+  return h + (p[1] === "00" ? "" : ":" + p[1]) + ap;
+}
+function hexA(hex, a) {
+  var n = parseInt(hex.slice(1), 16);
+  return "rgba(" + ((n >> 16) & 255) + "," + ((n >> 8) & 255) + "," + (n & 255) + "," + a + ")";
+}
+function h(tag, attrs, kids) {
+  var e = document.createElement(tag), k, i, c;
+  if (attrs) {
+    for (k in attrs) {
+      if (!attrs.hasOwnProperty(k)) continue;
+      if (k === "class") e.className = attrs[k];
+      else if (k === "style") e.style.cssText = attrs[k];
+      else if (k === "text") e.textContent = attrs[k];
+      else if (k.indexOf("on") === 0) e[k] = attrs[k];
+      else e.setAttribute(k, attrs[k]);
+    }
+  }
+  if (kids != null) {
+    if (!(kids instanceof Array)) kids = [kids];
+    for (i = 0; i < kids.length; i++) {
+      c = kids[i];
+      if (c === null || c === undefined || c === false) continue;
+      e.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+    }
+  }
+  return e;
+}
+function btn(text, cls, fn) { return h("span", { "class": "btn " + (cls || ""), text: text, onclick: fn }); }
+
+/* ============================ data ============================ */
+var AISLES = ["Produce", "Meat", "Dairy", "Pantry", "Other"];
+var AISLE_WORDS = {
+  Produce: ["pepper","onion","lettuce","tomato","apple","banana","fruit","garlic","carrot","potato","broccoli","spinach","avocado","lime","lemon","cilantro","cucumber","berries","strawberr","blueberr","celery","mushroom","zucchini","corn on","green bean","salad","herb","basil","grapes","orange"],
+  Meat: ["pepperoni","chicken","beef","turkey","pork","sausage","bacon","salmon","shrimp","steak","ham","fish","meatball","hot dog","ground"],
+  Dairy: ["milk","cheese","egg","butter","yogurt","cream","mozzarella","parmesan","cheddar"],
+  Pantry: ["pasta","spaghetti","rice","flour","sugar","oil","sauce","beans","broth","spice","salt","pepper flakes","mix","bread","tortilla","syrup","noodle","cereal","seasoning","chips","salsa","bun","taco shell","stock","vinegar","oats"]
+};
+function guessAisle(name) {
+  var n = name.toLowerCase(), a, i, w;
+  // check the more specific groups first so "ground turkey" is Meat and "pancake mix" is Pantry
+  var order = ["Meat", "Dairy", "Pantry", "Produce"];
+  for (a = 0; a < order.length; a++) {
+    w = AISLE_WORDS[order[a]];
+    for (i = 0; i < w.length; i++) if (n.indexOf(w[i]) > -1) return order[a];
+  }
+  return "Other";
+}
+function parseIngredients(text) {
+  var out = [], lines = String(text || "").split(/\r?\n/), i, p, nm, ai;
+  for (i = 0; i < lines.length; i++) {
+    p = lines[i].split("|"); nm = p[0].replace(/^\s*[-•*]\s*/, "").replace(/^\s+|\s+$/g, "");
+    if (!nm) continue;
+    ai = p[1] ? p[1].replace(/^\s+|\s+$/g, "") : "";
+    ai = ai ? ai.charAt(0).toUpperCase() + ai.slice(1).toLowerCase() : guessAisle(nm);
+    if (AISLES.indexOf(ai) < 0) ai = "Other";
+    out.push({ name: nm, aisle: ai });
+  }
+  return out;
+}
+function ing(names) { return parseIngredients(names.join("\n")); }
+function sampleRecipes() {
+  return [
+    { id: "r1", title: "Sheet-pan chicken fajitas", tags: ["kid-approved", "30 min"], ingredients: ing(["Bell peppers","Onions","Chicken breasts","Fajita seasoning","Tortillas","Shredded cheese","Sour cream"]) },
+    { id: "r2", title: "Spaghetti with turkey meatballs", tags: ["kid-approved"], ingredients: ing(["Spaghetti","Ground turkey","Marinara sauce","Parmesan","Breadcrumbs","Eggs"]) },
+    { id: "r3", title: "Breakfast-for-dinner pancakes", tags: ["30 min", "easy"], ingredients: ing(["Pancake mix","Eggs","Milk","Fresh fruit","Maple syrup","Bacon"]) },
+    { id: "r4", title: "Taco night", tags: ["kid-approved", "easy"], ingredients: ing(["Ground beef","Taco shells","Taco seasoning","Lettuce","Tomatoes","Shredded cheese","Salsa"]) },
+    { id: "r5", title: "Baked chicken, rice and broccoli", tags: ["easy"], ingredients: ing(["Chicken thighs","Rice","Broccoli","Olive oil","Garlic"]) },
+    { id: "r6", title: "Homemade pizza night", tags: ["kid-approved", "fun"], ingredients: ing(["Pizza dough","Pizza sauce","Mozzarella","Pepperoni","Bell peppers"]) }
+  ];
+}
+function defaultFamily() {
+  return { eaters: "", avoid: "", allergies: "", cuisines: "", timeLimit: "45 minutes", budget: "", dinners: 5, stores: "" };
+}
+function sampleData() {
+  var t = new Date(), k0 = ymd(t), k1 = ymd(addDays(t, 1)), k3 = ymd(addDays(t, 3)), k5 = ymd(addDays(t, 5));
+  return {
+    people: [
+      { id: "p1", name: "Mom", color: COLORS[0] },
+      { id: "p2", name: "Dad", color: COLORS[1] },
+      { id: "p3", name: "Kid 1", color: COLORS[2] },
+      { id: "p4", name: "Kid 2", color: COLORS[3] }
+    ],
+    events: [
+      { id: "e1", title: "Sample: practice", who: "p3", date: k0, time: "17:30", repeat: "weekly" },
+      { id: "e2", title: "Sample: piano", who: "p4", date: k1, time: "16:00", repeat: "weekly" },
+      { id: "e3", title: "Sample: dinner out", who: "", date: k3, time: "18:30", repeat: "none" },
+      { id: "e4", title: "Sample: dentist", who: "p1", date: k5, time: "08:30", repeat: "none" },
+      { id: "e5", title: "Sample: trash out", who: "p2", date: k1, time: "", repeat: "weekly" }
+    ],
+    chores: [
+      { id: "c1", title: "Feed the pets", who: "p3", days: [0,1,2,3,4,5,6], stars: 1 },
+      { id: "c2", title: "Set the table", who: "p4", days: [0,1,2,3,4,5,6], stars: 1 },
+      { id: "c3", title: "Take out trash", who: "p2", days: [1, 4], stars: 2 },
+      { id: "c4", title: "Tidy room", who: "p3", days: [6], stars: 3 },
+      { id: "c5", title: "Tidy room", who: "p4", days: [6], stars: 3 }
+    ],
+    done: {},
+    lists: [
+      { id: "l1", name: "Groceries", items: [{ id: "i1", text: "Milk", done: false }, { id: "i2", text: "Eggs", done: false }] },
+      { id: "l2", name: "To-do", items: [{ id: "i3", text: "Sign permission slip", done: false }] }
+    ],
+    meals: {},
+    mealStatus: {},
+    recipes: sampleRecipes(),
+    family: defaultFamily(),
+    photos: [],
+    settings: { keepAwake: false, city: "Dallas, Texas", lat: 32.78, lon: -96.8, tz: "America/Chicago", idle: 10, nightFrom: 21, nightTo: 6, goal: 15, reward: "Movie night" }
+  };
+}
+var S;
+function load() {
+  try { var raw = localStorage.getItem(KEY); if (raw) { S = JSON.parse(raw); migrate(); return; } } catch (e) {}
+  S = sampleData();
+}
+function migrate() {
+  // older saved data won't have the meal-planning pieces yet
+  if (!S.recipes) S.recipes = sampleRecipes();
+  if (!S.family) S.family = defaultFamily();
+  if (!S.mealStatus) S.mealStatus = {};
+  if (!S.meals) S.meals = {};
+  if (S.settings && S.settings.keepAwake === undefined) S.settings.keepAwake = false;
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(S)); return true; }
+  catch (e) { alert("This device ran out of storage space. Remove some photos and try again."); return false; }
+}
+load();
+
+var UI = { tab: "cal", view: "week", cursor: new Date(), filter: "", listId: "", focusAdd: false, mealWeek: new Date() };
+var weather = null;
+var MODAL = null;
+
+function person(id) { for (var i = 0; i < S.people.length; i++) if (S.people[i].id === id) return S.people[i]; return null; }
+function pcolor(id) { var p = person(id); return p ? p.color : EVERYONE; }
+function pname(id) { var p = person(id); return p ? p.name : "Everyone"; }
+
+/* ============================ weather ============================ */
+function wxIcon(c) {
+  if (c === 0) return "☀️";
+  if (c <= 2) return "⛅";
+  if (c === 3) return "☁️";
+  if (c === 45 || c === 48) return "🌫️";
+  if (c >= 51 && c <= 67) return "🌧️";
+  if (c >= 71 && c <= 77) return "❄️";
+  if (c >= 80 && c <= 82) return "🌦️";
+  if (c >= 95) return "⛈️";
+  return "☁️";
+}
+function wxFor(d) {
+  if (!weather || !weather.daily) return "";
+  var i = weather.daily.time.indexOf(ymd(d));
+  if (i < 0) return "";
+  return wxIcon(weather.daily.weather_code[i]) + " " + Math.round(weather.daily.temperature_2m_max[i]) + "°/" + Math.round(weather.daily.temperature_2m_min[i]) + "°";
+}
+function xhr(url, cb) {
+  var x = new XMLHttpRequest();
+  x.open("GET", url, true);
+  x.onreadystatechange = function () {
+    if (x.readyState !== 4) return;
+    var data = null;
+    if (x.status === 200) { try { data = JSON.parse(x.responseText); } catch (e) {} }
+    cb(data);
+  };
+  x.send();
+}
+function loadWeather() {
+  var s = S.settings;
+  xhr("https://api.open-meteo.com/v1/forecast?latitude=" + s.lat + "&longitude=" + s.lon +
+    "&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,weather_code" +
+    "&temperature_unit=fahrenheit&timezone=" + encodeURIComponent(s.tz) + "&forecast_days=10",
+    function (d) { if (d) { weather = d; tick(); if (!MODAL && UI.tab === "cal") render(); } });
+}
+
+/* ============================ events ============================ */
+function eventsOn(d, ignoreFilter) {
+  var key = ymd(d), dow = d.getDay(), dom = d.getDate(), out = [], i, e, ok, base;
+  for (i = 0; i < S.events.length; i++) {
+    e = S.events[i]; ok = false;
+    if (!ignoreFilter && UI.filter && e.who !== UI.filter) continue;
+    if (e.date === key) ok = true;
+    else if (e.repeat && e.repeat !== "none" && key > e.date) {
+      base = parse(e.date);
+      if (e.repeat === "daily") ok = true;
+      else if (e.repeat === "weekdays") ok = dow >= 1 && dow <= 5;
+      else if (e.repeat === "weekly") ok = base.getDay() === dow;
+      else if (e.repeat === "monthly") ok = base.getDate() === dom;
+    }
+    if (ok) out.push(e);
+  }
+  out.sort(function (a, b) { return (a.time || "") < (b.time || "") ? -1 : ((a.time || "") > (b.time || "") ? 1 : 0); });
+  return out;
+}
+function evNode(e, big) {
+  return h("div", { "class": "ev", style: "border-left-color:" + pcolor(e.who) + ";background:" + hexA(pcolor(e.who), 0.14), onclick: function (ev) { ev.stopPropagation(); editEvent(e); } }, [
+    h("div", { "class": "et", text: e.time ? fmtTime(e.time) : "All day" }),
+    h("div", { "class": "en", text: e.title })
+  ]);
+}
+
+/* ============================ modal ============================ */
+function closeModal() { if (MODAL) { document.body.removeChild(MODAL); MODAL = null; } }
+function modal(title, content, buttons) {
+  closeModal();
+  var bg = h("div", { "class": "mbg", onclick: function (e) { if (e.target === bg) closeModal(); } }, [
+    h("div", { "class": "modal" }, [h("h2", { text: title }), content, h("div", { "class": "mbtns" }, buttons)])
+  ]);
+  document.body.appendChild(bg);
+  MODAL = bg;
+}
+function personChips(selected, onPick, allowEveryone) {
+  var wrap = h("div", {}), list = [];
+  if (allowEveryone) list.push({ id: "", name: "Everyone", color: EVERYONE });
+  list = list.concat(S.people);
+  function draw() {
+    wrap.innerHTML = "";
+    list.forEach(function (p) {
+      wrap.appendChild(h("span", { "class": "chip" + (selected === p.id ? "" : " off"), style: "background:" + p.color, text: p.name, onclick: function () { selected = p.id; onPick(p.id); draw(); } }));
+    });
+  }
+  draw();
+  return wrap;
+}
+
+function editEvent(ev, presetDate) {
+  var isNew = !ev;
+  var e = ev ? JSON.parse(JSON.stringify(ev)) : { id: uid(), title: "", who: UI.filter || "", date: presetDate || ymd(UI.cursor), time: "09:00", repeat: "none" };
+  var title = h("input", { "class": "inp", type: "text", value: e.title, placeholder: "What's happening?" });
+  var date = h("input", { "class": "inp", type: "date", value: e.date });
+  var time = h("input", { "class": "inp", type: "time", value: e.time || "09:00" });
+  var allday = h("input", { type: "checkbox" }); allday.checked = !e.time;
+  var rep = h("select", { "class": "inp" }, [["none", "Doesn't repeat"], ["daily", "Every day"], ["weekdays", "Every weekday"], ["weekly", "Every week"], ["monthly", "Every month"]].map(function (o) {
+    var op = h("option", { value: o[0], text: o[1] }); if (e.repeat === o[0]) op.selected = true; return op;
+  }));
+  var body = h("div", {}, [
+    title,
+    h("div", { "class": "lab", text: "Who" }), personChips(e.who, function (id) { e.who = id; }, true),
+    h("div", { "class": "lab", text: "Date" }), date,
+    h("div", { "class": "lab", text: "Time" }), time,
+    h("label", { style: "display:block;margin-top:1vmin" }, [allday, " All day"]),
+    h("div", { "class": "lab", text: "Repeat" }), rep
+  ]);
+  var buttons = [
+    btn("Save", "dark", function () {
+      e.title = title.value.replace(/^\s+|\s+$/g, "") || "Event";
+      e.date = date.value || ymd(new Date());
+      e.time = allday.checked ? "" : (time.value || "09:00");
+      e.repeat = rep.value;
+      if (isNew) S.events.push(e);
+      else for (var i = 0; i < S.events.length; i++) if (S.events[i].id === e.id) S.events[i] = e;
+      save(); closeModal(); render();
+    }),
+    btn("Cancel", "", closeModal)
+  ];
+  if (!isNew) buttons.push(btn("Delete", "red", function () {
+    if (!confirm("Delete this event (and all repeats)?")) return;
+    S.events = S.events.filter(function (x) { return x.id !== e.id; });
+    save(); closeModal(); render();
+  }));
+  modal(isNew ? "New event" : "Edit event", body, buttons);
+}
+
+/* ============================ nav + header ============================ */
+var NAV = [["cal", "📅", "Calendar"], ["chores", "⭐", "Chores"], ["lists", "✅", "Lists"], ["meals", "🍽️", "Meals"], ["recipes", "📖", "Recipes"], ["photos", "🖼️", "Photos"], ["set", "⚙️", "Settings"]];
+function navNode() {
+  return h("div", { "class": "nav" }, NAV.map(function (n) {
+    return h("div", { "class": "navb" + (UI.tab === n[0] ? " on" : ""), onclick: function () { UI.tab = n[0]; UI.focusAdd = false; render(); } }, [
+      h("div", { "class": "ico", text: n[1] }), h("div", { "class": "lbl", text: n[2] })
+    ]);
+  }));
+}
+function clockNode() {
+  var n = new Date(), hr = n.getHours() % 12; if (hr === 0) hr = 12;
+  var w = "";
+  if (weather && weather.current) w = wxIcon(weather.current.weather_code) + " " + Math.round(weather.current.temperature_2m) + "°";
+  return h("div", { "class": "clock" }, [
+    h("div", { "class": "t", id: "clk", text: hr + ":" + pad(n.getMinutes()) }),
+    h("div", { "class": "w", id: "wxn", text: w })
+  ]);
+}
+function header(titleText, controls) {
+  return h("div", { "class": "head" }, [
+    h("div", {}, [h("div", { "class": "title", text: titleText }), controls ? h("div", { "class": "ctrl" }, controls) : null]),
+    clockNode()
+  ]);
+}
+
+/* ============================ calendar views ============================ */
+function calTitle() {
+  var c = UI.cursor;
+  if (UI.view === "month") return MONN[c.getMonth()] + " " + c.getFullYear();
+  if (UI.view === "week") {
+    var a = startOfWeek(c), b = addDays(a, 6);
+    return a.getMonth() === b.getMonth()
+      ? MONN[a.getMonth()].slice(0, 3) + " " + a.getDate() + " – " + b.getDate() + ", " + b.getFullYear()
+      : MONN[a.getMonth()].slice(0, 3) + " " + a.getDate() + " – " + MONN[b.getMonth()].slice(0, 3) + " " + b.getDate();
+  }
+  return ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][c.getDay()] + ", " + MONN[c.getMonth()].slice(0, 3) + " " + c.getDate();
+}
+function step(dir) {
+  var c = UI.cursor;
+  if (UI.view === "month") UI.cursor = new Date(c.getFullYear(), c.getMonth() + dir, 1);
+  else if (UI.view === "week") UI.cursor = addDays(c, 7 * dir);
+  else UI.cursor = addDays(c, dir);
+  render();
+}
+function calControls() {
+  var views = [["day", "Day"], ["week", "Week"], ["month", "Month"], ["schedule", "Schedule"]];
+  var seg = h("div", { "class": "seg" }, views.map(function (v) {
+    return btn(v[1], UI.view === v[0] ? "on" : "", function () { UI.view = v[0]; render(); });
+  }));
+  var chips = [h("span", { "class": "chip" + (UI.filter === "" ? "" : " off"), style: "background:" + EVERYONE, text: "All", onclick: function () { UI.filter = ""; render(); } })];
+  S.people.forEach(function (p) {
+    chips.push(h("span", { "class": "chip" + (UI.filter === p.id ? "" : " off"), style: "background:" + p.color, text: p.name, onclick: function () { UI.filter = (UI.filter === p.id ? "" : p.id); render(); } }));
+  });
+  return [
+    btn("‹", "", function () { step(-1); }),
+    btn("Today", "", function () { UI.cursor = new Date(); render(); }),
+    btn("›", "", function () { step(1); }),
+    seg,
+    btn("+ Add", "dark", function () { editEvent(null); })
+  ].concat(chips);
+}
+function viewWeek() {
+  var start = startOfWeek(UI.cursor), today = ymd(new Date()), cols = [], i, d, evs, list;
+  for (i = 0; i < 7; i++) {
+    d = addDays(start, i); evs = eventsOn(d);
+    list = h("div", { "class": "grow scroll evs" }, evs.length ? evs.map(function (e) { return evNode(e); }) : [h("div", { "class": "none", text: "Nothing planned" })]);
+    cols.push(h("div", { "class": "wcol" + (ymd(d) === today ? " today" : "") }, [
+      h("div", { "class": "dh", onclick: (function (dd) { return function () { UI.cursor = dd; UI.view = "day"; render(); }; })(d) }, [
+        h("div", {}, [h("div", { "class": "dow", text: DOW[d.getDay()] }), h("div", { "class": "dn", text: "" + d.getDate() })]),
+        h("div", { "class": "plus", text: "+", onclick: (function (dd) { return function (ev) { ev.stopPropagation(); editEvent(null, ymd(dd)); }; })(d) })
+      ]),
+      h("div", { "class": "dwx", text: wxFor(d) }),
+      list
+    ]));
+  }
+  return h("div", { "class": "wk" }, cols);
+}
+function viewDay() {
+  var evs = eventsOn(UI.cursor);
+  var box = h("div", { "class": "dayview" }, [h("div", { "class": "dwx", style: "font-size:2.4vmin", text: wxFor(UI.cursor) })]);
+  if (!evs.length) box.appendChild(h("div", { "class": "none", style: "font-size:2.8vmin;padding:2vmin 0", text: "Nothing planned. Enjoy the day!" }));
+  evs.forEach(function (e) {
+    var n = evNode(e);
+    n.appendChild(h("div", { "class": "et", text: pname(e.who) }));
+    box.appendChild(n);
+  });
+  return box;
+}
+function viewMonth() {
+  var c = UI.cursor, first = new Date(c.getFullYear(), c.getMonth(), 1), gs = startOfWeek(first), today = ymd(new Date());
+  var weeks = Math.ceil((first.getDay() + new Date(c.getFullYear(), c.getMonth() + 1, 0).getDate()) / 7);
+  var head = h("div", { "class": "mh" }, DOW.map(function (d) { return h("div", { text: d }); }));
+  var rows = [head], w, i, d, evs, cell, cells;
+  for (w = 0; w < weeks; w++) {
+    cells = [];
+    for (i = 0; i < 7; i++) {
+      d = addDays(gs, w * 7 + i); evs = eventsOn(d);
+      cell = h("div", { "class": "mc" + (d.getMonth() !== c.getMonth() ? " other" : "") + (ymd(d) === today ? " today" : ""), onclick: (function (dd) { return function () { UI.cursor = dd; UI.view = "day"; render(); }; })(d) }, [h("div", { "class": "md", text: "" + d.getDate() })]);
+      evs.slice(0, 3).forEach(function (e) {
+        cell.appendChild(h("div", { "class": "me", style: "background:" + hexA(pcolor(e.who), 0.2) + ";border-left:.5vmin solid " + pcolor(e.who), text: (e.time ? fmtTime(e.time) + " " : "") + e.title }));
+      });
+      if (evs.length > 3) cell.appendChild(h("div", { "class": "mm", text: "+" + (evs.length - 3) + " more" }));
+      cells.push(cell);
+    }
+    rows.push(h("div", { "class": "mw" }, cells));
+  }
+  return h("div", { "class": "mo" }, rows);
+}
+function viewSchedule() {
+  var d = UI.cursor, all = eventsOn(d, true), cols = [];
+  var groups = S.people.map(function (p) { return { id: p.id, name: p.name, color: p.color }; });
+  if (all.some(function (e) { return !person(e.who); })) groups.push({ id: "", name: "Everyone", color: EVERYONE });
+  groups.forEach(function (g) {
+    var evs = all.filter(function (e) { return g.id === "" ? !person(e.who) : e.who === g.id; });
+    cols.push(h("div", { "class": "wcol" }, [
+      h("div", { "class": "ph" }, [h("div", { "class": "av", style: "background:" + g.color, text: g.name.charAt(0).toUpperCase() }), g.name]),
+      h("div", { "class": "grow scroll" }, evs.length ? evs.map(function (e) { return evNode(e); }) : [h("div", { "class": "none", text: "Free" })])
+    ]));
+  });
+  return h("div", { "class": "sc" }, cols);
+}
+function tabCal() {
+  var v = UI.view === "week" ? viewWeek() : UI.view === "day" ? viewDay() : UI.view === "month" ? viewMonth() : viewSchedule();
+  return [header(calTitle(), calControls()), h("div", { "class": "body" }, v)];
+}
+
+/* ============================ chores ============================ */
+function weekStars(pid) {
+  var start = startOfWeek(new Date()), total = 0, i, k, d;
+  for (i = 0; i < 7; i++) {
+    k = ymd(addDays(start, i)); d = S.done[k]; if (!d) continue;
+    S.chores.forEach(function (c) { if (c.who === pid && d[c.id]) total += c.stars; });
+  }
+  return total;
+}
+function editChore(ch) {
+  var isNew = !ch;
+  var c = ch ? JSON.parse(JSON.stringify(ch)) : { id: uid(), title: "", who: S.people[0] ? S.people[0].id : "", days: [0,1,2,3,4,5,6], stars: 1 };
+  var title = h("input", { "class": "inp", type: "text", value: c.title, placeholder: "Chore name" });
+  var stars = h("input", { "class": "inp", type: "number", min: "1", max: "10", value: "" + c.stars, style: "width:14vmin" });
+  var dayWrap = h("div", {});
+  function drawDays() {
+    dayWrap.innerHTML = "";
+    for (var i = 0; i < 7; i++) (function (i) {
+      var on = c.days.indexOf(i) > -1;
+      dayWrap.appendChild(h("span", { "class": "dchip" + (on ? " on" : ""), text: DOW1[i], onclick: function () {
+        var p = c.days.indexOf(i); if (p > -1) c.days.splice(p, 1); else c.days.push(i); drawDays();
+      } }));
+    })(i);
+  }
+  drawDays();
+  var body = h("div", {}, [title, h("div", { "class": "lab", text: "Who" }), personChips(c.who, function (id) { c.who = id; }, false), h("div", { "class": "lab", text: "Days" }), dayWrap, h("div", { "class": "lab", text: "Stars earned" }), stars]);
+  var buttons = [
+    btn("Save", "dark", function () {
+      c.title = title.value.replace(/^\s+|\s+$/g, "") || "Chore";
+      c.stars = Math.max(1, parseInt(stars.value, 10) || 1);
+      if (isNew) S.chores.push(c); else for (var i = 0; i < S.chores.length; i++) if (S.chores[i].id === c.id) S.chores[i] = c;
+      save(); closeModal(); render();
+    }),
+    btn("Cancel", "", closeModal)
+  ];
+  if (!isNew) buttons.push(btn("Delete", "red", function () {
+    if (!confirm("Delete this chore?")) return;
+    S.chores = S.chores.filter(function (x) { return x.id !== c.id; }); save(); closeModal(); render();
+  }));
+  modal(isNew ? "New chore" : "Edit chore", body, buttons);
+}
+function tabChores() {
+  var now = new Date(), key = ymd(now), dow = now.getDay(), goal = S.settings.goal || 15, cols = [];
+  S.people.forEach(function (p) {
+    var stars = weekStars(p.id), pct = Math.min(100, Math.round(100 * stars / goal));
+    var mine = S.chores.filter(function (c) { return c.who === p.id && c.days.indexOf(dow) > -1; });
+    var rows = mine.map(function (c) {
+      var done = !!(S.done[key] && S.done[key][c.id]);
+      return h("div", { "class": "ch" + (done ? " done" : ""), onclick: function () {
+        if (!S.done[key]) S.done[key] = {};
+        S.done[key][c.id] = !done; save(); render();
+      } }, [
+        h("div", { "class": "ck", text: done ? "✓" : "" }),
+        h("div", { "class": "cn", text: c.title }),
+        h("div", { "class": "cs", text: "⭐" + c.stars }),
+        h("div", { "class": "ed", text: "✎", onclick: function (ev) { ev.stopPropagation(); editChore(c); } })
+      ]);
+    });
+    cols.push(h("div", { "class": "pc" }, [
+      h("div", { "class": "row center" }, [h("div", { "class": "av", style: "background:" + p.color, text: p.name.charAt(0).toUpperCase() }), h("div", { "class": "grow", style: "font-weight:800;font-size:2.8vmin", text: p.name }), h("div", { "class": "cs", text: "⭐ " + stars + "/" + goal })]),
+      h("div", { "class": "bar" }, [h("div", { style: "width:" + pct + "%;background:" + p.color })]),
+      stars >= goal ? h("div", { style: "font-weight:800;color:#3fbf8f;margin-bottom:1vmin", text: "🎉 Goal reached: " + S.settings.reward + "!" }) : null,
+      h("div", { "class": "grow scroll" }, rows.length ? rows : [h("div", { "class": "none", text: "No chores today" })])
+    ]));
+  });
+  return [
+    header("Chores", [btn("+ Add chore", "dark", function () { editChore(null); }), h("span", { "class": "muted", text: "Weekly goal: " + goal + " stars → " + S.settings.reward })]),
+    h("div", { "class": "body" }, h("div", { "class": "pc-wrap row grow", style: "min-height:0" }, cols))
+  ];
+}
+
+/* ============================ lists ============================ */
+function tabLists() {
+  if (!S.lists.length) S.lists.push({ id: uid(), name: "Groceries", items: [] });
+  var cur = null, i;
+  for (i = 0; i < S.lists.length; i++) if (S.lists[i].id === UI.listId) cur = S.lists[i];
+  if (!cur) { cur = S.lists[0]; UI.listId = cur.id; }
+  var tabs = h("div", { "class": "lt" }, S.lists.map(function (l) {
+    return btn(l.name, l.id === cur.id ? "on" : "", function () { UI.listId = l.id; render(); });
+  }).concat([btn("+ New list", "", function () {
+    var inp = h("input", { "class": "inp", type: "text", placeholder: "List name" });
+    modal("New list", inp, [btn("Create", "dark", function () {
+      var n = inp.value.replace(/^\s+|\s+$/g, ""); if (!n) return;
+      var l = { id: uid(), name: n, items: [] }; S.lists.push(l); UI.listId = l.id; save(); closeModal(); render();
+    }), btn("Cancel", "", closeModal)]);
+  })]));
+  var input = h("input", { "class": "inp", type: "text", placeholder: "Add an item…", id: "addinp" });
+  function add() {
+    var t = input.value.replace(/^\s+|\s+$/g, ""); if (!t) return;
+    cur.items.unshift({ id: uid(), text: t, done: false }); save(); UI.focusAdd = true; render();
+  }
+  input.onkeydown = function (e) { if (e.keyCode === 13) add(); };
+  function itemNode(it) {
+    return h("div", { "class": "li" + (it.done ? " done" : ""), onclick: function () { it.done = !it.done; save(); render(); } }, [
+      h("div", { "class": "ck", text: it.done ? "✓" : "" }), it.text,
+      h("div", { "class": "x", text: "×", onclick: function (ev) { ev.stopPropagation(); cur.items = cur.items.filter(function (x) { return x.id !== it.id; }); save(); render(); } })
+    ]);
+  }
+  var hasAisles = cur.items.some(function (it) { return it.aisle; });
+  var items = [];
+  if (hasAisles) {
+    AISLES.forEach(function (a) {
+      var inA = cur.items.filter(function (it) { return (it.aisle || "Other") === a; });
+      if (!inA.length) return;
+      items.push(h("div", { "class": "aisle", text: a }));
+      inA.forEach(function (it) { items.push(itemNode(it)); });
+    });
+  } else items = cur.items.map(itemNode);
+  function listText() {
+    var out = [];
+    if (hasAisles) {
+      AISLES.forEach(function (a) {
+        var inA = cur.items.filter(function (it) { return !it.done && (it.aisle || "Other") === a; });
+        if (!inA.length) return;
+        out.push(a.toUpperCase());
+        inA.forEach(function (it) { out.push(it.text); });
+        out.push("");
+      });
+    } else cur.items.filter(function (it) { return !it.done; }).forEach(function (it) { out.push(it.text); });
+    return out.join("\n").replace(/\s+$/, "");
+  }
+  var box = h("div", { "class": "lbox" }, [
+    h("div", { "class": "addrow" }, [input, btn("Add", "dark", add)]),
+    h("div", { "class": "grow scroll" }, items.length ? items : [h("div", { "class": "none", style: "font-size:2.6vmin", text: "Nothing here yet." })]),
+    h("div", { "class": "row wrap", style: "margin-top:1vmin" }, [
+      btn("Copy for Instacart", "sm dark", function () { copyModal("Copy this list", listText(), "Copy, then paste into Instacart's search or list, and check out there. I can't place the order for you."); }),
+      btn("Clear checked", "sm", function () { cur.items = cur.items.filter(function (x) { return !x.done; }); save(); render(); }),
+      btn("Rename", "sm", function () {
+        var inp = h("input", { "class": "inp", type: "text", value: cur.name });
+        modal("Rename list", inp, [btn("Save", "dark", function () { cur.name = inp.value || cur.name; save(); closeModal(); render(); }), btn("Cancel", "", closeModal)]);
+      }),
+      btn("Delete list", "sm", function () {
+        if (!confirm("Delete the list \"" + cur.name + "\"?")) return;
+        S.lists = S.lists.filter(function (l) { return l.id !== cur.id; }); UI.listId = ""; save(); render();
+      })
+    ])
+  ]);
+  return [header("Lists", null), h("div", { "class": "body" }, h("div", { "class": "row lwrap grow", style: "min-height:0" }, [tabs, box]))];
+}
+
+/* ============================ meals ============================ */
+var MEALS = [["breakfast", "Breakfast"], ["lunch", "Lunch"], ["dinner", "Dinner"]];
+function weekKey() { return ymd(startOfWeek(UI.mealWeek)); }
+function recipeById(id) { for (var i = 0; i < S.recipes.length; i++) if (S.recipes[i].id === id) return S.recipes[i]; return null; }
+function recipeByTitle(t) {
+  var x = String(t || "").replace(/^\s+|\s+$/g, "").toLowerCase();
+  for (var i = 0; i < S.recipes.length; i++) if (S.recipes[i].title.toLowerCase() === x) return S.recipes[i];
+  return null;
+}
+function setMeal(k, kind, text, recipeId) {
+  if (!S.meals[k]) S.meals[k] = {};
+  if (text) S.meals[k][kind] = text; else delete S.meals[k][kind];
+  if (kind === "dinner") { if (recipeId) S.meals[k].dinnerId = recipeId; else delete S.meals[k].dinnerId; }
+}
+function copyModal(title, text, note) {
+  var ta = h("textarea", { "class": "inp", rows: "9", readonly: "readonly" });
+  ta.value = text;
+  var msg = h("div", { "class": "muted", style: "margin-top:1vmin", text: note || "" });
+  modal(title, h("div", {}, [msg, ta]), [
+    btn("Copy", "dark", function () {
+      ta.focus(); ta.select();
+      try { ta.setSelectionRange(0, 999999); } catch (e) {}
+      var ok = false;
+      try { ok = document.execCommand("copy"); } catch (e) {}
+      msg.textContent = ok ? "Copied! Now paste it where you need it." : "Couldn't copy automatically. Press and hold the text above, choose Select All, then Copy.";
+    }),
+    btn("Close", "", closeModal)
+  ]);
+}
+function editDinner(d) {
+  var k = ymd(d), cur = S.meals[k] || {};
+  var sel = h("select", { "class": "inp" }, [h("option", { value: "", text: "— type your own below —" })].concat(S.recipes.map(function (r) {
+    var o = h("option", { value: r.id, text: r.title }); if (cur.dinnerId === r.id) o.selected = true; return o;
+  })));
+  var inp = h("input", { "class": "inp", type: "text", value: cur.dinnerId ? "" : (cur.dinner || ""), placeholder: "e.g. Dinner at Grandma's" });
+  var body = h("div", {}, [h("div", { "class": "lab", text: "Pick from your recipes" }), sel, h("div", { "class": "lab", text: "Or type something else" }), inp]);
+  modal("Dinner – " + DOW[d.getDay()] + " " + (d.getMonth() + 1) + "/" + d.getDate(), body, [
+    btn("Save", "dark", function () {
+      var r = sel.value ? recipeById(sel.value) : null;
+      if (r) setMeal(k, "dinner", r.title, r.id); else setMeal(k, "dinner", inp.value.replace(/^\s+|\s+$/g, ""), null);
+      if (S.mealStatus[weekKey()] === "approved") delete S.mealStatus[weekKey()]; // changed after approval: review again
+      save(); closeModal(); render();
+    }),
+    btn("Clear", "", function () { setMeal(k, "dinner", "", null); save(); closeModal(); render(); }),
+    btn("Cancel", "", closeModal)
+  ]);
+}
+function askClaudeText() {
+  var start = startOfWeek(UI.mealWeek), f = S.family, i, d, evs, lines = [], titles;
+  for (i = 0; i < 7; i++) {
+    d = addDays(start, i); evs = eventsOn(d, true);
+    lines.push(ymd(d) + " (" + DOW[d.getDay()] + "): " + (evs.length ? evs.map(function (e) { return (e.time ? fmtTime(e.time) + " " : "") + e.title; }).join("; ") : "nothing scheduled"));
+  }
+  titles = S.recipes.map(function (r) { return "- " + r.title + (r.tags && r.tags.length ? " [" + r.tags.join(", ") + "]" : ""); }).join("\n");
+  return "Plan our family dinners for the week starting " + ymd(start) + ".\n\n" +
+    "Family rules:\n" +
+    "- Who eats: " + (f.eaters || "(not set)") + "\n" +
+    "- Foods the kids won't touch: " + (f.avoid || "(none listed)") + "\n" +
+    "- Allergies / dietary restrictions: " + (f.allergies || "(none listed)") + "\n" +
+    "- Cuisines we like or dislike: " + (f.cuisines || "(not set)") + "\n" +
+    "- Weeknight time limit: " + (f.timeLimit || "(not set)") + "\n" +
+    "- Weekly grocery budget: " + (f.budget || "(not set)") + "\n" +
+    "- Dinners needed: " + (f.dinners || 5) + "\n\n" +
+    "What's on our calendar (give busy nights an easy meal):\n" + lines.join("\n") + "\n\n" +
+    "Our recipe library:\n" + titles + "\n\n" +
+    "Mostly use recipes from the library, and add a few new ones for variety. Reply with ONLY this JSON and nothing else, so I can paste it straight into the app:\n" +
+    "{\"dinners\": {\"YYYY-MM-DD\": \"Recipe title\"}, \"recipes\": [{\"title\": \"New recipe title\", \"tags\": [\"easy\"], \"ingredients\": [\"Ingredient one\", \"Ingredient two\"]}]}\n" +
+    "Put every new recipe you use in the \"recipes\" list with its ingredients. Skip a date if that night shouldn't have a planned dinner.";
+}
+function importPlan() {
+  var ta = h("textarea", { "class": "inp", rows: "9", placeholder: "Paste the plan here" });
+  var msg = h("div", { "class": "muted", style: "margin-bottom:1vmin", text: "Paste the plan Claude gave you. It will fill in this week's dinners as a draft for you to review." });
+  modal("Import a plan", h("div", {}, [msg, ta]), [
+    btn("Import", "dark", function () {
+      var txt = ta.value, a = txt.indexOf("{"), b = txt.lastIndexOf("}"), data, added = 0, set = 0, k, wk = null;
+      try { data = JSON.parse(txt.slice(a, b + 1)); } catch (e) { msg.textContent = "That doesn't look like a plan. Paste the whole reply, including the { and } at each end."; return; }
+      (data.recipes || []).forEach(function (r) {
+        if (!r || !r.title || recipeByTitle(r.title)) return;
+        S.recipes.push({ id: uid(), title: String(r.title), tags: (r.tags || []).map(String), ingredients: parseIngredients((r.ingredients || []).join("\n")) });
+        added++;
+      });
+      for (k in (data.dinners || {})) {
+        if (!data.dinners.hasOwnProperty(k) || !/^\d{4}-\d{2}-\d{2}$/.test(k)) continue;
+        var rec = recipeByTitle(data.dinners[k]);
+        setMeal(k, "dinner", rec ? rec.title : String(data.dinners[k]), rec ? rec.id : null);
+        set++;
+        var wkk = ymd(startOfWeek(parse(k)));
+        if (!wk) wk = wkk;
+      }
+      if (!set) { msg.textContent = "I couldn't find any dinners in that. Ask Claude to try again."; return; }
+      S.mealStatus[wk] = "draft"; UI.mealWeek = parse(wk);
+      save(); closeModal(); render();
+    }),
+    btn("Cancel", "", closeModal)
+  ]);
+}
+function makeGroceryList() {
+  var start = startOfWeek(UI.mealWeek), i, k, m, r, found = {}, order = [], missing = [], count = 0;
+  for (i = 0; i < 7; i++) {
+    k = ymd(addDays(start, i)); m = S.meals[k];
+    if (!m || !m.dinner) continue;
+    r = m.dinnerId ? recipeById(m.dinnerId) : null;
+    if (!r) { missing.push(m.dinner); continue; }
+    count++;
+    r.ingredients.forEach(function (g) {
+      var key = g.name.toLowerCase();
+      if (!found[key]) { found[key] = { name: g.name, aisle: g.aisle, n: 0 }; order.push(key); }
+      found[key].n++;
+    });
+  }
+  if (!order.length) { alert("Nothing to shop for yet. Pick recipes for this week's dinners first."); return; }
+  var name = "Groceries – week of " + (start.getMonth() + 1) + "/" + start.getDate(), list = null;
+  S.lists.forEach(function (l) { if (l.name === name) list = l; });
+  if (!list) { list = { id: uid(), name: name, items: [] }; S.lists.push(list); }
+  list.items = order.map(function (key) {
+    var g = found[key];
+    return { id: uid(), text: g.name + (g.n > 1 ? " (×" + g.n + ")" : ""), aisle: g.aisle, done: false };
+  });
+  UI.listId = list.id; UI.tab = "lists"; save(); render();
+  if (missing.length) setTimeout(function () { alert("Heads up: these dinners aren't saved recipes, so they aren't on the list: " + missing.join(", ")); }, 150);
+}
+function tabMeals() {
+  var start = startOfWeek(UI.mealWeek), today = ymd(new Date()), days = [], i, wk = weekKey(), status = S.mealStatus[wk];
+  for (i = 0; i < 7; i++) days.push(addDays(start, i));
+  var rows = [h("div", { "class": "mr hdr" }, [h("div", { "class": "hd" })].concat(days.map(function (d) {
+    return h("div", { "class": "d" + (ymd(d) === today ? " today" : ""), text: DOW[d.getDay()] + " " + d.getDate() });
+  })))];
+  MEALS.forEach(function (m) {
+    rows.push(h("div", { "class": "mr" }, [h("div", { "class": "hd", text: m[1] })].concat(days.map(function (d) {
+      var k = ymd(d), txt = S.meals[k] && S.meals[k][m[0]];
+      return h("div", { "class": "meal" + (txt ? "" : " empty") + (k === today ? " today" : ""), text: txt || "+", onclick: function () {
+        if (m[0] === "dinner") { editDinner(d); return; }
+        var inp = h("input", { "class": "inp", type: "text", value: txt || "", placeholder: m[1] + " on " + DOW[d.getDay()] });
+        modal(m[1] + " – " + DOW[d.getDay()] + " " + (d.getMonth() + 1) + "/" + d.getDate(), inp, [btn("Save", "dark", function () {
+          setMeal(k, m[0], inp.value.replace(/^\s+|\s+$/g, ""), null); save(); closeModal(); render();
+        }), btn("Clear", "", function () { setMeal(k, m[0], "", null); save(); closeModal(); render(); }), btn("Cancel", "", closeModal)]);
+      } });
+    }))));
+  });
+  var banner = null;
+  if (status === "draft") banner = h("div", { "class": "banner" }, [h("span", { text: "Draft plan – tap any dinner to swap it, then approve." }), btn("Approve plan", "dark", function () { S.mealStatus[wk] = "approved"; save(); render(); })]);
+  else if (status === "approved") banner = h("div", { "class": "banner ok" }, [h("span", { text: "✓ Plan approved. Ready to make the grocery list." }), btn("Make grocery list", "dark", makeGroceryList)]);
+  return [
+    header("Meals", [
+      btn("‹", "", function () { UI.mealWeek = addDays(UI.mealWeek, -7); render(); }),
+      btn("This week", "", function () { UI.mealWeek = new Date(); render(); }),
+      btn("›", "", function () { UI.mealWeek = addDays(UI.mealWeek, 7); render(); }),
+      btn("Ask Claude to plan", "dark", function () { copyModal("Ask Claude to plan the week", askClaudeText(), "Copy this, paste it to Claude in the chat, then come back and tap Import plan."); }),
+      btn("Import plan", "", importPlan),
+      btn("Make grocery list", "", makeGroceryList)
+    ]),
+    h("div", { "class": "body" }, [banner, h("div", { "class": "ml" }, rows)])
+  ];
+}
+
+/* ============================ recipes ============================ */
+function editRecipe(rc) {
+  var isNew = !rc;
+  var r = rc ? JSON.parse(JSON.stringify(rc)) : { id: uid(), title: "", tags: [], ingredients: [] };
+  var title = h("input", { "class": "inp", type: "text", value: r.title, placeholder: "Recipe name" });
+  var tags = h("input", { "class": "inp", type: "text", value: r.tags.join(", "), placeholder: "kid-approved, 30 min, easy" });
+  var ta = h("textarea", { "class": "inp", rows: "8", placeholder: "One ingredient per line, for example:\nChicken breasts\nBell peppers\nTortillas" });
+  ta.value = r.ingredients.map(function (g) { return g.name; }).join("\n");
+  var hint = h("div", { "class": "muted", style: "margin-top:.8vmin;font-size:1.8vmin", text: "The grocery aisle is figured out automatically. To set it yourself, write it after a bar, like  Cilantro | produce" });
+  var body = h("div", {}, [title, h("div", { "class": "lab", text: "Tags (separate with commas)" }), tags, h("div", { "class": "lab", text: "Ingredients" }), ta, hint]);
+  var buttons = [
+    btn("Save", "dark", function () {
+      r.title = title.value.replace(/^\s+|\s+$/g, "") || "Recipe";
+      r.tags = tags.value.split(",").map(function (t) { return t.replace(/^\s+|\s+$/g, ""); }).filter(function (t) { return t; });
+      // keep a manually chosen aisle for ingredients that didn't change
+      var old = {}; r.ingredients.forEach(function (g) { old[g.name.toLowerCase()] = g.aisle; });
+      r.ingredients = parseIngredients(ta.value).map(function (g) {
+        var line = ta.value.split(/\r?\n/).filter(function (l) { return l.split("|")[0].replace(/^\s*[-•*]\s*/, "").replace(/^\s+|\s+$/g, "") === g.name; })[0] || "";
+        if (line.indexOf("|") < 0 && old[g.name.toLowerCase()]) g.aisle = old[g.name.toLowerCase()];
+        return g;
+      });
+      if (isNew) S.recipes.push(r); else for (var i = 0; i < S.recipes.length; i++) if (S.recipes[i].id === r.id) S.recipes[i] = r;
+      // keep dinners that use this recipe in sync with a renamed title
+      for (var k in S.meals) if (S.meals.hasOwnProperty(k) && S.meals[k].dinnerId === r.id) S.meals[k].dinner = r.title;
+      save(); closeModal(); render();
+    }),
+    btn("Cancel", "", closeModal)
+  ];
+  if (!isNew) buttons.push(btn("Delete", "red", function () {
+    if (!confirm("Delete this recipe?")) return;
+    S.recipes = S.recipes.filter(function (x) { return x.id !== r.id; });
+    for (var k in S.meals) if (S.meals.hasOwnProperty(k) && S.meals[k].dinnerId === r.id) delete S.meals[k].dinnerId;
+    save(); closeModal(); render();
+  }));
+  modal(isNew ? "New recipe" : "Edit recipe", body, buttons);
+}
+function tabRecipes() {
+  var cards = S.recipes.map(function (r) {
+    return h("div", { "class": "rc", onclick: function () { editRecipe(r); } }, [
+      h("div", { "class": "rt", text: r.title }),
+      h("div", {}, (r.tags || []).map(function (t) { return h("span", { "class": "tag", text: t }); })),
+      h("div", { "class": "rn", text: r.ingredients.length + " ingredient" + (r.ingredients.length === 1 ? "" : "s") })
+    ]);
+  });
+  return [
+    header("Recipes", [btn("+ New recipe", "dark", function () { editRecipe(null); }), h("span", { "class": "muted", text: "Your family's recipe library. Plans are built from these." })]),
+    h("div", { "class": "body scroll" }, h("div", { "class": "rg" }, cards.length ? cards : [h("div", { "class": "none", style: "font-size:2.6vmin", text: "No recipes yet. Add your family favorites." })]))
+  ];
+}
+
+/* ============================ photos ============================ */
+function addPhotos(files) {
+  var pending = files.length, i;
+  if (!pending) return;
+  function one(f) {
+    var r = new FileReader();
+    r.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        var max = 1280, s = Math.min(1, max / Math.max(img.width, img.height)), cv = document.createElement("canvas");
+        cv.width = Math.round(img.width * s); cv.height = Math.round(img.height * s);
+        cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
+        S.photos.push(cv.toDataURL("image/jpeg", 0.72));
+        if (--pending === 0) { if (!save()) S.photos.pop(); render(); }
+      };
+      img.onerror = function () { if (--pending === 0) { save(); render(); } };
+      img.src = r.result;
+    };
+    r.readAsDataURL(f);
+  }
+  for (i = 0; i < files.length; i++) one(files[i]);
+}
+function tabPhotos() {
+  var file = h("input", { type: "file", accept: "image/*", multiple: "multiple", style: "display:none", onchange: function () { addPhotos(this.files); } });
+  var grid = h("div", { "class": "pg" }, S.photos.map(function (src, idx) {
+    return h("div", { "class": "ph1", style: "background-image:url(" + src + ")" }, [h("div", { "class": "rm", text: "×", onclick: function () { S.photos.splice(idx, 1); save(); render(); } })]);
+  }));
+  return [
+    header("Photos", [btn("+ Add photos", "dark", function () { file.click(); }), btn("Start slideshow", "", startSaver), file]),
+    h("div", { "class": "body scroll" }, [
+      h("div", { "class": "muted", style: "margin-bottom:1.4vmin", text: S.photos.length ? S.photos.length + " photos. They play as a slideshow when the screen is idle. Photos are stored on this device only." : "No photos yet. Add some and they will play as a slideshow when the screen is idle." }),
+      grid
+    ])
+  ];
+}
+
+/* ============================ settings ============================ */
+function tabSettings() {
+  var s = S.settings, out = [];
+  // people
+  var pc = h("div", { "class": "card" }, [h("h3", { text: "Family members" })]);
+  S.people.forEach(function (p) {
+    var row = h("div", { "class": "prow" });
+    var inp = h("input", { "class": "inp", type: "text", value: p.name, onchange: function () { p.name = this.value || p.name; save(); } });
+    row.appendChild(inp);
+    COLORS.forEach(function (c) {
+      row.appendChild(h("span", { "class": "sw" + (p.color === c ? " on" : ""), style: "background:" + c, onclick: function () { p.color = c; save(); render(); } }));
+    });
+    row.appendChild(btn("Remove", "sm", function () {
+      if (!confirm("Remove " + p.name + "? Their events and chores are removed too.")) return;
+      S.people = S.people.filter(function (x) { return x.id !== p.id; });
+      S.events = S.events.filter(function (e) { return e.who !== p.id; });
+      S.chores = S.chores.filter(function (c) { return c.who !== p.id; });
+      save(); render();
+    }));
+    pc.appendChild(row);
+  });
+  pc.appendChild(btn("+ Add person", "dark sm", function () {
+    S.people.push({ id: uid(), name: "New person", color: COLORS[S.people.length % COLORS.length] }); save(); render();
+  }));
+  out.push(pc);
+
+  // weather
+  var city = h("input", { "class": "inp", type: "text", value: s.city || "", placeholder: "City, e.g. Dallas", style: "max-width:40vmin;display:inline-block;margin-right:1vmin" });
+  var wmsg = h("div", { "class": "muted", style: "margin-top:.8vmin", text: "Current location: " + (s.city || (s.lat + ", " + s.lon)) });
+  out.push(h("div", { "class": "card" }, [h("h3", { text: "Weather" }), city,
+    btn("Find", "dark sm", function () {
+      var q = city.value.split(",")[0];
+      xhr("https://geocoding-api.open-meteo.com/v1/search?count=1&name=" + encodeURIComponent(q), function (d) {
+        if (d && d.results && d.results.length) {
+          var r = d.results[0]; s.lat = r.latitude; s.lon = r.longitude; s.tz = r.timezone || s.tz;
+          s.city = r.name + (r.admin1 ? ", " + r.admin1 : ""); save(); city.value = s.city;
+          wmsg.textContent = "Set to " + s.city; loadWeather();
+        } else wmsg.textContent = "Couldn't find that city.";
+      });
+    }), wmsg]));
+
+  // screen
+  function num(label, key, w) {
+    var inp = h("input", { "class": "inp", type: "number", value: "" + s[key], style: "width:" + (w || 14) + "vmin", onchange: function () { s[key] = parseInt(this.value, 10) || 0; save(); } });
+    return h("div", {}, [h("div", { "class": "lab", text: label }), inp]);
+  }
+  out.push(h("div", { "class": "card" }, [h("h3", { text: "Screen" }),
+    num("Start photo slideshow after this many idle minutes (0 = never)", "idle"),
+    num("Dim screen from hour (0–23)", "nightFrom"), num("Back to bright at hour (0–23)", "nightTo"),
+    h("div", { "class": "lab", text: "Full screen" }),
+    btn("Go full screen", "sm", function () {
+      var el = document.documentElement, f = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen;
+      if (f) f.call(el); else alert("This browser can't go full screen. On iPad, use Share → Add to Home Screen, then open it from there.");
+    })]));
+
+  // Echo Show mode
+  var awakeNote = h("div", { "class": "muted", style: "margin-top:.8vmin", id: "awakenote", text: "" });
+  out.push(h("div", { "class": "card" }, [h("h3", { text: "Echo Show mode" }),
+    h("div", { "class": "muted", text: "On an Echo Show the browser drops back to the Alexa home screen after a while. This plays a silent sound in the background, which can keep the page open. You may need to tap the screen once after it loads." }),
+    h("div", { style: "margin-top:1vmin" }, [
+      btn(s.keepAwake ? "Keep screen open: ON" : "Keep screen open: OFF", s.keepAwake ? "dark sm" : "sm", function () {
+        s.keepAwake = !s.keepAwake; save();
+        if (s.keepAwake) startAwake(); else stopAwake();
+        render();
+      })
+    ]), awakeNote]));
+
+  // meal planning rules
+  var fam = S.family;
+  function fld(label, key, ph, big) {
+    var inp = h(big ? "textarea" : "input", { "class": "inp", placeholder: ph || "", onchange: function () { fam[key] = big ? this.value : (key === "dinners" ? (parseInt(this.value, 10) || 5) : this.value); save(); } });
+    if (big) { inp.rows = 2; inp.value = fam[key] || ""; } else { inp.type = key === "dinners" ? "number" : "text"; inp.value = fam[key] || ""; }
+    return h("div", {}, [h("div", { "class": "lab", text: label }), inp]);
+  }
+  out.push(h("div", { "class": "card" }, [h("h3", { text: "Meal planning rules" }),
+    h("div", { "class": "muted", text: "These go into the request you send Claude each week, so the plan fits your family." }),
+    fld("Who eats (ages help)", "eaters", "e.g. 2 adults and 3 kids"),
+    fld("Foods the kids won't touch", "avoid", "e.g. mushrooms, spicy food", true),
+    fld("Allergies or dietary restrictions", "allergies", "", true),
+    fld("Cuisines you like (and dislike)", "cuisines", "e.g. love Tex-Mex, no seafood", true),
+    fld("Weeknight time limit", "timeLimit", "e.g. 45 minutes"),
+    fld("Weekly grocery budget", "budget", "e.g. $200"),
+    fld("Dinners per week", "dinners", ""),
+    fld("Instacart store(s)", "stores", "")]));
+
+  // chores goal
+  var reward = h("input", { "class": "inp", type: "text", value: s.reward || "", style: "max-width:40vmin", onchange: function () { s.reward = this.value; save(); } });
+  out.push(h("div", { "class": "card" }, [h("h3", { text: "Chore rewards" }), num("Stars needed per week", "goal"), h("div", { "class": "lab", text: "Reward" }), reward]));
+
+  // backup
+  var ta = h("textarea", { "class": "inp", rows: "4", placeholder: "Backup code appears here. Paste a code here to restore." });
+  out.push(h("div", { "class": "card" }, [h("h3", { text: "Backup and move to another device" }),
+    h("div", { "class": "muted", text: "Everything is stored on this device. To copy your setup to another screen, make a backup code here and paste it there. Photos are not included." }),
+    h("div", { style: "margin:1vmin 0" }, [
+      btn("Make backup code", "sm dark", function () {
+        var c = JSON.parse(JSON.stringify(S)); c.photos = []; ta.value = JSON.stringify(c);
+      }),
+      btn("Restore from code", "sm", function () {
+        try {
+          var d = JSON.parse(ta.value);
+          if (!d.people || !d.events || !d.settings) throw new Error("bad");
+          d.photos = S.photos; S = d; save(); render(); loadWeather();
+        } catch (e) { alert("That doesn't look like a valid backup code."); }
+      })
+    ]), ta,
+    h("div", { "class": "lab", text: "Start over" }),
+    btn("Delete everything", "sm red", function () {
+      if (!confirm("Delete all events, chores, lists, meals and photos on this device?")) return;
+      S = sampleData(); S.events = []; S.chores = []; S.lists = [{ id: uid(), name: "Groceries", items: [] }]; save(); render();
+    })]));
+  return [header("Settings", null), h("div", { "class": "body scroll" }, out)];
+}
+
+/* ============================ render ============================ */
+function render() {
+  var app = $("app"), main = h("div", { "class": "main" });
+  var parts = UI.tab === "cal" ? tabCal() : UI.tab === "chores" ? tabChores() : UI.tab === "lists" ? tabLists() : UI.tab === "meals" ? tabMeals() : UI.tab === "recipes" ? tabRecipes() : UI.tab === "photos" ? tabPhotos() : tabSettings();
+  parts.forEach(function (p) { main.appendChild(p); });
+  app.innerHTML = "";
+  app.appendChild(navNode());
+  app.appendChild(main);
+  if (UI.focusAdd) { var i = $("addinp"); if (i) i.focus(); UI.focusAdd = false; }
+  awakeStatus();
+}
+
+/* ============================ clock, night, screensaver ============================ */
+var lastDay = ymd(new Date());
+function isNight() {
+  var hr = new Date().getHours(), a = S.settings.nightFrom, b = S.settings.nightTo;
+  if (a === b) return false;
+  return a > b ? (hr >= a || hr < b) : (hr >= a && hr < b);
+}
+function tick() {
+  var n = new Date(), hr = n.getHours() % 12; if (hr === 0) hr = 12;
+  var t = hr + ":" + pad(n.getMinutes());
+  var c = $("clk"); if (c) c.textContent = t;
+  var w = $("wxn"); if (w && weather && weather.current) w.textContent = wxIcon(weather.current.weather_code) + " " + Math.round(weather.current.temperature_2m) + "°";
+  $("st").textContent = t;
+  $("sd").textContent = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][n.getDay()] + ", " + MONN[n.getMonth()] + " " + n.getDate();
+  $("dim").className = isNight() ? "on" : "";
+  if (ymd(n) !== lastDay) { lastDay = ymd(n); if (!MODAL) { UI.cursor = n; render(); } }
+}
+
+/* ============================ keep-awake (Echo Show) ============================ */
+var SILENT = "data:audio/mpeg;base64,//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+var awakeAudio = null;
+function awakeStatus() {
+  var n = $("awakenote"); if (!n) return;
+  if (!S.settings.keepAwake) { n.textContent = ""; return; }
+  n.textContent = (awakeAudio && !awakeAudio.paused) ? "Running." : "Waiting for a tap. Touch the screen anywhere once to start it.";
+}
+function startAwake() {
+  if (!S.settings.keepAwake) return;
+  try {
+    if (!awakeAudio) {
+      awakeAudio = document.createElement("audio");
+      awakeAudio.src = SILENT; awakeAudio.loop = true;
+      awakeAudio.setAttribute("playsinline", "");
+      awakeAudio.onplaying = awakeStatus; awakeAudio.onpause = awakeStatus;
+    }
+    var p = awakeAudio.play();
+    if (p && p.then) p.then(awakeStatus, awakeStatus);
+  } catch (e) {}
+  awakeStatus();
+}
+function stopAwake() { try { if (awakeAudio) awakeAudio.pause(); } catch (e) {} awakeStatus(); }
+
+var lastActive = new Date().getTime(), saverOn = false, saverTimer = null, photoIdx = 0;
+function showPhoto() {
+  var pic = $("pic");
+  if (!S.photos.length) { pic.style.opacity = 0; return; }
+  pic.style.opacity = 0;
+  setTimeout(function () {
+    photoIdx = (photoIdx + 1) % S.photos.length;
+    pic.style.backgroundImage = "url(" + S.photos[photoIdx] + ")";
+    pic.style.opacity = 1;
+  }, 800);
+}
+function startSaver() {
+  if (saverOn) return;
+  saverOn = true; closeModal();
+  $("saver").style.display = "block";
+  photoIdx = Math.floor(Math.random() * Math.max(1, S.photos.length)) - 1;
+  showPhoto();
+  saverTimer = setInterval(showPhoto, 15000);
+}
+function stopSaver() {
+  saverOn = false; $("saver").style.display = "none";
+  if (saverTimer) { clearInterval(saverTimer); saverTimer = null; }
+}
+function activity(e) {
+  lastActive = new Date().getTime();
+  if (S.settings.keepAwake && (!awakeAudio || awakeAudio.paused)) startAwake();
+  if (saverOn) { stopSaver(); if (e && e.stopPropagation) { e.stopPropagation(); e.preventDefault(); } }
+}
+["touchstart", "mousedown", "keydown"].forEach(function (n) { document.addEventListener(n, activity, true); });
+setInterval(function () {
+  var m = S.settings.idle;
+  if (m > 0 && !saverOn && new Date().getTime() - lastActive > m * 60000) startSaver();
+}, 10000);
+
+render();
+tick();
+loadWeather();
+startAwake();
+setInterval(tick, 15000);
+setInterval(loadWeather, 30 * 60 * 1000);
+window.__hub = { render: render, UI: UI, S: function () { return S; } };
+})();
+</script>
+</body>
+</html>
